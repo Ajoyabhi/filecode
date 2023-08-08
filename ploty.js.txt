@@ -1,0 +1,161 @@
+function processData(csvData) {
+  const parsedData = Papa.parse(csvData, { header: true, skipEmptyLines: true });
+  const df = parsedData.data;
+
+  // Group the DataFrame by 'Merchant' and calculate the total withdrawal for each merchant
+  const withdrawalByMerchant = df.reduce((acc, row) => {
+    const merchant = row['Merchant'] || row['Platform'];
+    const withdrawalAmt = parseFloat(row['WITHDRAWAL AMT']);
+    acc[merchant] = (acc[merchant] || 0) + withdrawalAmt;
+    return acc;
+  }, {});
+
+  // Sort the result in descending order of the total withdrawal
+  const sortedWithdrawalByMerchant = Object.entries(withdrawalByMerchant).sort(
+    (a, b) => b[1] - a[1]
+  );
+
+  // Separate merchants and total withdrawal amounts
+  const filteredMerchant = sortedWithdrawalByMerchant.map((item) => item[0]);
+  const totalWithdrawalAmounts = sortedWithdrawalByMerchant.map((item) => item[1]);
+
+  // Create the first bar chart using Plotly
+  const merchantChart = document.getElementById('merchantChart');
+  Plotly.newPlot(merchantChart, [
+    {
+      type: 'bar',
+      x: filteredMerchant,
+      y: totalWithdrawalAmounts,
+      marker: {
+        color: [
+          '#C51605',
+          '#FD8D14',
+          '#FFE17B',
+          '#CECE5A',
+          '#FBA1B7',
+          '#E8FFCE',
+          '#7C73C0',
+          '#461959',
+          '#CD6688',
+          // Add more colors if needed
+        ],
+      },
+    },
+  ]);
+
+  // Group the DataFrame by 'Another Column' and calculate the total withdrawal for each group
+  const withdrawalByAnotherColumn = df.reduce((acc, row) => {
+    const group = row['Platform'];
+    const withdrawalAmt = parseFloat(row['WITHDRAWAL AMT']);
+    acc[group] = (acc[group] || 0) + withdrawalAmt;
+    return acc;
+  }, {});
+
+  // Sort the result in descending order of the total withdrawal
+  const sortedWithdrawalByAnotherColumn = Object.entries(
+    withdrawalByAnotherColumn
+  ).sort((a, b) => b[1] - a[1]);
+
+  // Separate groups and total withdrawal amounts
+  const filteredGroup = sortedWithdrawalByAnotherColumn.map((item) => item[0]);
+  const totalWithdrawalAmounts2 = sortedWithdrawalByAnotherColumn.map((item) => item[1]);
+
+  // Create the second bar chart using Plotly
+  const merchantChart2 = document.getElementById('merchantChart2');
+  Plotly.newPlot(merchantChart2, [
+    {
+      type: 'bar',
+      x: filteredGroup,
+      y: totalWithdrawalAmounts2,
+      marker: {
+        color: 'rgba(75, 192, 192, 0.2)',
+      },
+    },
+  ]);
+
+  // Group the DataFrame by 'Category' and calculate the total withdrawal for each category
+  const withdrawalByCategory = df.reduce((acc, row) => {
+    const category = row['Category'];
+    const withdrawalAmt = parseFloat(row['WITHDRAWAL AMT']);
+    acc[category] = (acc[category] || 0) + withdrawalAmt;
+    return acc;
+  }, {});
+
+  // Sort the result in descending order of the total withdrawal
+  const sortedWithdrawalByCategory = Object.entries(withdrawalByCategory).sort(
+    (a, b) => b[1] - a[1]
+  );
+
+  // Separate categories and total withdrawal amounts
+  const categories = sortedWithdrawalByCategory.map((item) => item[0]);
+  const totalWithdrawalAmountsPie = sortedWithdrawalByCategory.map((item) => item[1]);
+
+  // Create the pie chart using Plotly
+  const categoryPieChart = document.getElementById('categoryPieChart');
+  Plotly.newPlot(categoryPieChart, [
+    {
+      type: 'pie',
+      labels: categories,
+      values: totalWithdrawalAmountsPie,
+      marker: {
+        colors: [
+          '#C51605',
+          '#FD8D14',
+          '#FFE17B',
+          '#CECE5A',
+          '#FBA1B7',
+          '#E8FFCE',
+          '#7C73C0',
+          '#461959',
+          '#CD6688',
+          // Add more colors if needed
+        ],
+      },
+    },
+  ]);
+}
+
+
+function processData(csvData) {
+  const parsedData = Papa.parse(csvData, { header: true, skipEmptyLines: true });
+  const df = parsedData.data;
+
+  // Process your data and create Plotly charts here
+  // ... (Refer to the previous response for creating Plotly charts)
+
+  // Example of creating a Plotly bar chart
+  const barChart = document.getElementById('barChart');
+  const barData = [{
+    x: filteredMerchant,
+    y: totalWithdrawalAmounts,
+    type: 'bar'
+  }];
+  Plotly.newPlot(barChart, barData);
+
+  // Example of creating a Plotly pie chart
+  const pieChart = document.getElementById('pieChart');
+  const pieData = [{
+    labels: categories,
+    values: totalWithdrawalAmountsPie,
+    type: 'pie'
+  }];
+  Plotly.newPlot(pieChart, pieData);
+}
+
+const csvDataList = JSON.parse(sessionStorage.getItem('results'));
+
+if (csvDataList) {
+  const ind = 5;
+  const csvData = csvDataList[ind];
+
+  if (csvData) {
+    processData(csvData);
+  } else {
+    console.error(`CSV data not found at index ${ind}.`);
+  }
+} else {
+  console.error(`CSV data not found at session storage.`);
+}
+
+
+// Your existing code to retrieve and process data from sessionStorage
