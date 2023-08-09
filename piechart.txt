@@ -1,0 +1,72 @@
+// Assuming you have your JSON data in jsonData
+const jsonData = /* Your JSON data here */;
+
+// Initialize objects to store total sums for each XNSCATEGORY
+const categorySums = {};
+
+// Loop through the data to calculate total sums for each XNSCATEGORY
+jsonData.forEach((row) => {
+  const category = row['XNSCATEGORY'];
+  const amount = parseFloat(row['AMOUNT']);
+
+  if (!category || isNaN(amount)) {
+    return; // Skip rows with no category or invalid amount
+  }
+
+  if (categorySums[category] === undefined) {
+    categorySums[category] = 0;
+  }
+  
+  // Add the absolute value of the amount to the category's total sum
+  categorySums[category] += Math.abs(amount);
+});
+
+// Extract categories and their sums
+const categories = Object.keys(categorySums);
+const categoryAmounts = categories.map(category => categorySums[category]);
+
+// Create a pie chart using Chart.js
+const ctxPie = document.getElementById('categoryPieChart').getContext('2d');
+new Chart(ctxPie, {
+  type: 'pie',
+  data: {
+    labels: categories,
+    datasets: [
+      {
+        label: 'Total Amount',
+        data: categoryAmounts,
+        backgroundColor: [
+          '#C51605',
+          '#FD8D14',
+          '#FFE17B',
+          // Add more colors if needed
+        ],
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    legend: {
+      position: 'right',
+    },
+    plugins: {
+      legend: {
+        labels: {
+          font: {
+            size: 8,
+          },
+        },
+      },
+    },
+    tooltips: {
+      callbacks: {
+        label: (context) => {
+          const category = context.label;
+          const amount = context.parsed;
+          return `${category}: ${amount} (Total Amount: ${categorySums[category]})`;
+        },
+      },
+    },
+  },
+});

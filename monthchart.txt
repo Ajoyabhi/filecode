@@ -1,0 +1,76 @@
+// Assuming you have your JSON data in jsonData
+const jsonData = /* Your JSON data here */;
+
+// Initialize objects to store total debit and total credit for each month
+const monthlyDebits = {};
+const monthlyCredits = {};
+
+// Loop through the data to calculate total debit and total credit for each month
+jsonData.forEach((row) => {
+  const dateParts = row['XNSDATE'].split('-');
+  const year = parseInt(dateParts[0]);
+  const month = parseInt(dateParts[1]);
+
+  const amount = parseFloat(row['AMOUNT']);
+  if (isNaN(amount)) {
+    return; // Skip rows with invalid amount
+  }
+
+  if (amount < 0) {
+    if (monthlyDebits[year] === undefined) {
+      monthlyDebits[year] = {};
+    }
+    if (monthlyDebits[year][month] === undefined) {
+      monthlyDebits[year][month] = 0;
+    }
+    monthlyDebits[year][month] -= amount;
+  } else {
+    if (monthlyCredits[year] === undefined) {
+      monthlyCredits[year] = {};
+    }
+    if (monthlyCredits[year][month] === undefined) {
+      monthlyCredits[year][month] = 0;
+    }
+    monthlyCredits[year][month] += amount;
+  }
+});
+
+// Extract years and months from the data
+const years = Object.keys(monthlyDebits);
+const months = [...new Set(years.flatMap(year => Object.keys(monthlyDebits[year] || monthlyCredits[year])))];
+
+// Calculate the total debit and credit amounts for each month
+const debitAmounts = months.map(month => years.map(year => monthlyDebits[year]?.[month] || 0));
+const creditAmounts = months.map(month => years.map(year => monthlyCredits[year]?.[month] || 0));
+
+// Create a line chart using Chart.js
+const ctxLine = document.getElementById('monthlyLineChart').getContext('2d');
+new Chart(ctxLine, {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Total Debit',
+        data: debitAmounts,
+        borderColor: '#C51605',
+        fill: false,
+      },
+      {
+        label: 'Total Credit',
+        data: creditAmounts,
+        borderColor: '#7C73C0',
+        fill: false,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  },
+});
