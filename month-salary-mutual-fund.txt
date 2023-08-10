@@ -1,0 +1,174 @@
+// Initialize objects to store monthly salary credits and mutual fund investments
+const monthlySalaryCredits = {};
+const monthlyMutualFundInvestments = {};
+
+// Loop through the data to calculate monthly sums for salary credits and mutual fund investments
+jsonData.forEach((row) => {
+  const dateParts = row['XNSDATE'].split('-');
+  const year = parseInt(dateParts[0]);
+  const month = parseInt(dateParts[1]);
+
+  const category = row['XNSCATEGORY'];
+  const amount = parseFloat(row['AMOUNT']);
+
+  if (!category || isNaN(amount)) {
+    return; // Skip rows with no category or invalid amount
+  }
+
+  if (amount > 0) {
+    if (category === 'salary') {
+      if (monthlySalaryCredits[year] === undefined) {
+        monthlySalaryCredits[year] = {};
+      }
+      if (monthlySalaryCredits[year][month] === undefined) {
+        monthlySalaryCredits[year][month] = 0;
+      }
+      monthlySalaryCredits[year][month] += amount;
+    }
+  } else if (amount < 0 && category === 'mutual fund') {
+    if (monthlyMutualFundInvestments[year] === undefined) {
+      monthlyMutualFundInvestments[year] = {};
+    }
+    if (monthlyMutualFundInvestments[year][month] === undefined) {
+      monthlyMutualFundInvestments[year][month] = 0;
+    }
+    monthlyMutualFundInvestments[year][month] -= amount; // Store positive values for investments
+  }
+});
+
+// Extract years and months from the data
+const years = Object.keys(monthlySalaryCredits);
+const months = [...new Set(years.flatMap(year => Object.keys(monthlySalaryCredits[year] || monthlyMutualFundInvestments[year])))];
+
+// Calculate the total salary credits and mutual fund investments for each month
+const salaryCredits = months.map(month => years.map(year => monthlySalaryCredits[year]?.[month] || 0));
+const mutualFundInvestments = months.map(month => years.map(year => monthlyMutualFundInvestments[year]?.[month] || 0));
+
+// Create a line chart using Chart.js
+const ctxLine = document.getElementById('salaryMutualFundLineChart').getContext('2d');
+new Chart(ctxLine, {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Salary Credits',
+        data: salaryCredits,
+        borderColor: '#C51605',
+        fill: false,
+      },
+      {
+        label: 'Mutual Fund Investments',
+        data: mutualFundInvestments,
+        borderColor: '#7C73C0',
+        fill: false,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+  },
+});
+
+
+
+
+
+
+
+
+////// another approach/////////
+
+
+
+
+
+
+
+
+// Assuming you have your JSON data in jsonData
+const jsonData = /* Your JSON data here */;
+
+// Initialize arrays to store salary credits and mutual fund investments for each month
+const monthlySalaryCredits = Array(12).fill(0).map(() => 0);
+const monthlyMutualFundInvestments = Array(12).fill(0).map(() => 0);
+
+// Loop through the data to calculate salary credits and mutual fund investments for each month
+jsonData.forEach((row) => {
+  const category = row['XNSCATEGORY'];
+  const amount = parseFloat(row['AMOUNT']);
+
+  if (!category || isNaN(amount)) {
+    return; // Skip rows with no category or invalid amount
+  }
+
+  const dateParts = row['XNSDATE'].split('-');
+  const month = parseInt(dateParts[1]) - 1; // Subtract 1 to get zero-based month index
+
+  if (category === 'salary') {
+    monthlySalaryCredits[month] += Math.max(0, amount); // Only add positive amounts
+  } else if (category === 'mutual fund') {
+    monthlyMutualFundInvestments[month] += Math.abs(amount); // Always store as positive value
+  }
+});
+
+// Create a line chart using Chart.js
+const ctxLine = document.getElementById('categoryComparisonLineChart').getContext('2d');
+new Chart(ctxLine, {
+  type: 'line',
+  data: {
+    labels: Array.from({ length: 12 }, (_, i) => monthNames[i]), // Array of month names
+    datasets: [
+      {
+        label: 'Salary Credits',
+        data: monthlySalaryCredits,
+        borderColor: '#C51605',
+        fill: false,
+      },
+      {
+        label: 'Mutual Fund Investments',
+        data: monthlyMutualFundInvestments,
+        borderColor: '#7C73C0',
+        fill: false,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+      },
+    },
+    tooltips: {
+      mode: 'index', // Display tooltip for all datasets at the same index
+      intersect: false,
+      callbacks: {
+        title: (tooltipItems) => monthNames[tooltipItems[0].index], // Show month name as tooltip title
+        label: (context) => {
+          const datasetLabel = context.dataset.label || '';
+          const value = context.parsed.y || 0;
+          return `${datasetLabel}: ${value.toFixed(2)}`;
+        },
+      },
+    },
+  },
+});
+
+
+
+
+
+
